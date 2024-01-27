@@ -1,1 +1,1 @@
-There I'll collect my home and class work with Go-development course of GeekBrain
+There I'll collect my home and class works by Go-development course of GeekBrain
