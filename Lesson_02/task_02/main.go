@@ -38,7 +38,7 @@ func main() {
 
 	fmt.Println(s)
 
-	n := rand.Intn(l-1) + 1
+	n := rand.Intn(l-1) + 2
 	s1 := filter(s, n)
 
 	fmt.Printf("%d -> %v\n", n, s1)
