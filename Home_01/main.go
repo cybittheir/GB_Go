@@ -14,8 +14,6 @@ func main() {
 
 	filePth := os.Args[1]
 
-	//	filePth := "d:\\php7\\extras\\ssl\\openssl"
-
 	var fileName, fileExt string
 	// Напишите код, который выведет следующее
 	// filename: <name>
@@ -25,7 +23,17 @@ func main() {
 	// Для проверки своего решения используйте функции filepath.Base() filepath.Ext(
 	// ) Они могут помочь для проверки решения
 
-	fileName = filePth[strings.LastIndex(filePth, "\\")+1:]
+	s := `\`
+
+	if string(os.PathSeparator) == "/" {
+		s = "/"
+	} else if s == string(os.PathSeparator) {
+		fmt.Println("something")
+	}
+
+	fmt.Println(s)
+
+	fileName = filePth[strings.LastIndex(filePth, s)+1:]
 	if strings.LastIndex(filePth, ".") > 0 {
 
 		fileExt = fileName[strings.LastIndex(fileName, ".")+1:]
