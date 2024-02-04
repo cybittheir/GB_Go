@@ -21,11 +21,14 @@ func main() {
 	}
 
 	m := make(map[rune]int)
-
+	var l int
+	var x int
 	for _, v := range t {
 		if unicode.IsLetter(v) {
 			m[unicode.ToLower(v)]++
+			l++
 		}
+		x++
 	}
 
 	z := len(m)
@@ -36,8 +39,10 @@ func main() {
 
 	var p float32
 	for i, s := range m {
-		p = float32(s) / float32(z)
+		p = float32(s) / float32(l)
 		fmt.Printf("%c - %d; %0.2f / %0.1f", i, s, p, 100*p)
 		fmt.Println("%")
 	}
+	fmt.Println("===================")
+	fmt.Printf("Всего букв: %d; уникальных букв: %d;\nВсего символов: %d\n", l, z, x)
 }
