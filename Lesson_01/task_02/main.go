@@ -27,19 +27,31 @@ func main() {
 		if unicode.IsLetter(v) {
 			symbolNumber++
 			wordSingle++
+<<<<<<< HEAD
 		} else if (!unicode.IsLetter(v) || unicode.IsSpace(v)) && wordSingle > 0 {
+=======
+		} else if unicode.IsSpace(v) && wordSingle > 0 {
+>>>>>>> 99eb12bcde0205d1e37a23fddcb2ee0834dbea8d
 			wordLine++
 			wordSingle = 0
 		}
 		bytesNumber++
 	}
+<<<<<<< HEAD
 
 	if wordSingle > 0 {
 		wordLine++
 
+=======
+	if wordSingle > 0 {
+		wordLine++
+>>>>>>> 99eb12bcde0205d1e37a23fddcb2ee0834dbea8d
 	}
 	fmt.Printf("Количество слов: %d\n", wordLine)
 	fmt.Printf("Количество букв: %d\n", symbolNumber)
 	fmt.Printf("Количество байт: %d\n", bytesNumber)
+<<<<<<< HEAD
 	fmt.Printf("Количество байт: %d\n", len(text))
+=======
+>>>>>>> 99eb12bcde0205d1e37a23fddcb2ee0834dbea8d
 }
