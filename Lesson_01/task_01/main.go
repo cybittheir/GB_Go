@@ -10,10 +10,13 @@ func isPrime(n int) bool {
 	// Напишите код, проверяющий является ли число простым здесь
 	//
 	//
+<<<<<<< HEAD
 	if n == 1 {
 		fmt.Println("1 - исключение")
 		return false
 	}
+=======
+>>>>>>> 99eb12bcde0205d1e37a23fddcb2ee0834dbea8d
 	for s := 2; s < n/2; s++ {
 		if n%s == 0 {
 			fmt.Println("деление на", s, "без остатка")
