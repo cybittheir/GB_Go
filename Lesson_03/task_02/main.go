@@ -28,15 +28,6 @@ func (s Shape) Area() float64 {
 	return 0.0
 }
 
-/*
-	func (c Circle) GetName() string {
-		return c.s.Name
-	}
-
-	func (r Rectangle) GetName() string {
-		return r.s.Name
-	}
-*/
 func (c Circle) Area() float64 {
 	return math.Pi * math.Exp2(c.radius)
 }
