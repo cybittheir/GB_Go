@@ -54,7 +54,7 @@ func (d Record) GetTime() time.Time {
 
 func main() {
 
-	var records []Record
+	urlMap := make(map[string]Record)
 
 	fmt.Println("Программа для добавления url в список")
 	fmt.Println("a - добавить запись")
@@ -102,8 +102,17 @@ OuterLoop:
 			// Напишите свой код здесь
 			desc := strings.Replace(args[1], "_", " ", -1)
 			tags := strings.Fields(strings.Replace(args[2], ",", " ", -1))
-			r := Record{time.Now(), args[0], desc, Tags{tags}}
-			records = append(records, r)
+			url := strings.Replace(args[0], "https://", "", 1)
+			url = strings.Replace(url, "http://", "", 1)
+
+			r := Record{time.Now(), url, desc, Tags{tags}}
+			if urlMap[url].Url == url {
+				fmt.Println("\nОшибка. Этот URL уже записан")
+				continue OuterLoop
+			}
+			urlMap[url] = r
+
+			//			records = append(records, r)
 			fmt.Println("Запись добавлена")
 
 		case 'l':
@@ -115,20 +124,24 @@ OuterLoop:
 			// Дата: <дата>
 
 			// Напишите свой код здесь
-			if len(records) < 1 {
+			if len(urlMap) < 1 {
 				fmt.Println("\nОшибка. Нет ни одной записи")
 				continue OuterLoop
 			}
 			fmt.Println("--=== Список URL ===--")
-			for _, r := range records {
+			for _, r := range urlMap {
 				fmt.Printf("Имя: %s;\n", r.Desc)
 				fmt.Printf("URL: %s;\n", r.Url)
 				fmt.Printf("Теги: %s;\n", r.Tag)
-				fmt.Printf("Дата: %s;\n", r.Date)
+				fmt.Printf("Дата: %s;\n", r.Date.Format("01/02/2006 15:04"))
 				fmt.Println("--=== ===--")
 			}
 
 		case 'r':
+			if len(urlMap) < 1 {
+				fmt.Println("\nОшибка. Нет ни одной записи")
+				continue OuterLoop
+			}
 			if err := keyboard.Close(); err != nil {
 				log.Fatal(err)
 			}
@@ -140,6 +153,8 @@ OuterLoop:
 			_ = text
 
 			// Напишите свой код здесь
+			fmt.Println("--=== Список URL ===--")
+
 		default:
 			// Если нажата Esc выходим из приложения
 			if key == keyboard.KeyEsc {
