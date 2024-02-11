@@ -36,8 +36,14 @@ type Record struct {
 	Tags
 }
 
-func (t Tags) GetTags() []string {
-	return t.Tag
+func (t Tags) GetTags() string {
+	var s strings.Builder
+	for _, t := range t.Tag {
+		s.WriteString("#")
+		s.WriteString(t)
+		s.WriteString(" ")
+	}
+	return strings.TrimSpace(s.String())
 }
 
 func (r Record) GetUrl() string {
@@ -52,6 +58,45 @@ func (d Record) GetTime() time.Time {
 	return d.Date
 }
 
+func (d Record) GetRecord() string {
+	var s strings.Builder
+	s.WriteString("Имя: ")
+	s.WriteString(d.Desc)
+	s.WriteString(";\n")
+	s.WriteString("URL: ")
+	s.WriteString(d.Url)
+	s.WriteString(";\n")
+	s.WriteString("Теги: ")
+	s.WriteString(d.GetTags())
+	s.WriteString(";\n")
+	s.WriteString("Дата: ")
+	s.WriteString(d.Date.Format("01/02/2006 15:04"))
+	s.WriteString(";\n")
+	return s.String()
+}
+
+func searchRec(m map[string]Record, s string) string {
+	for url, rec := range m {
+		if rec.Desc == s {
+			return url
+		}
+	}
+	return ""
+}
+
+func searchTag(m map[string]Record, s string) []string {
+
+	var r []string
+	for url, rec := range m {
+		for _, t := range rec.Tag {
+			if t == s {
+				r = append(r, url)
+			}
+		}
+	}
+	return r
+}
+
 func main() {
 
 	urlMap := make(map[string]Record)
@@ -60,7 +105,10 @@ func main() {
 	fmt.Println("a - добавить запись")
 	fmt.Println("l - показать список")
 	fmt.Println("r - удалить запись")
+	fmt.Println("s - найти запись по описанию")
+	fmt.Println("t - найти запись по тэгу")
 	fmt.Println("Для выхода из приложения нажмите Esc")
+	fmt.Println("")
 
 	defer func() {
 		// Завершаем работу с клавиатурой при выходе из функции
@@ -75,12 +123,12 @@ OuterLoop:
 			log.Fatal(err)
 		}
 
-		fmt.Print("Выберите режим (a/r/l/ESC): ")
+		fmt.Print("Выберите режим (a/r/l/s/t/ESC): ")
 		char, key, err := keyboard.GetKey()
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("%s\n", string(char))
+		fmt.Printf("%s\n\n", string(char))
 
 		switch char {
 		case 'a':
@@ -90,6 +138,7 @@ OuterLoop:
 
 			// Добавление нового url в список хранения
 			fmt.Println("\nВведите новую запись в формате <url описание_ссылки теги,через,запятую>:")
+			fmt.Print("> ")
 
 			reader := bufio.NewReader(os.Stdin)
 			text, _ := reader.ReadString('\n')
@@ -105,15 +154,15 @@ OuterLoop:
 			url := strings.Replace(args[0], "https://", "", 1)
 			url = strings.Replace(url, "http://", "", 1)
 
-			r := Record{time.Now(), url, desc, Tags{tags}}
-			if urlMap[url].Url == url {
-				fmt.Println("\nОшибка. Этот URL уже записан")
+			if urlMap[url].Url != "" {
+				fmt.Println("Ошибка. Этот URL уже записан")
+				fmt.Println("")
 				continue OuterLoop
 			}
-			urlMap[url] = r
+			urlMap[url] = Record{time.Now(), args[0], desc, Tags{tags}}
 
-			//			records = append(records, r)
 			fmt.Println("Запись добавлена")
+			fmt.Println("")
 
 		case 'l':
 			// Вывод списка добавленных url. Выведите количество добавленных url и список с данными url
@@ -125,36 +174,101 @@ OuterLoop:
 
 			// Напишите свой код здесь
 			if len(urlMap) < 1 {
-				fmt.Println("\nОшибка. Нет ни одной записи")
+				fmt.Println("Ошибка. Нет ни одной записи")
+				fmt.Println("")
 				continue OuterLoop
 			}
-			fmt.Println("--=== Список URL ===--")
+			fmt.Println("\n--=== Список URL ===--")
 			for _, r := range urlMap {
-				fmt.Printf("Имя: %s;\n", r.Desc)
-				fmt.Printf("URL: %s;\n", r.Url)
-				fmt.Printf("Теги: %s;\n", r.Tag)
-				fmt.Printf("Дата: %s;\n", r.Date.Format("01/02/2006 15:04"))
+				fmt.Print(r.GetRecord())
 				fmt.Println("--=== ===--")
 			}
 
 		case 'r':
 			if len(urlMap) < 1 {
-				fmt.Println("\nОшибка. Нет ни одной записи")
+				fmt.Println("Ошибка. Нет ни одной записи")
+				fmt.Println("")
 				continue OuterLoop
 			}
 			if err := keyboard.Close(); err != nil {
 				log.Fatal(err)
 			}
 			// Удаление url из списка хранения
-			fmt.Println("Введите имя ссылки, которое нужно удалить")
+			fmt.Println("\nВведите имя ссылки, которое нужно удалить:")
+			fmt.Print("> ")
 
 			reader := bufio.NewReader(os.Stdin)
 			text, _ := reader.ReadString('\n')
-			_ = text
-
+			//			_ = text
+			text = strings.TrimRight(text, "\r\n")
+			text = strings.TrimRight(text, "\r")
 			// Напишите свой код здесь
-			fmt.Println("--=== Список URL ===--")
+			if url := searchRec(urlMap, text); url != "" {
+				delUrl := urlMap[url].Url
+				delete(urlMap, url)
+				fmt.Printf("Запись %s (%s) удалена\n\n", text, delUrl)
+			} else {
+				fmt.Printf("\nОшибка. Нет записи %s", text)
+				continue OuterLoop
+			}
 
+		case 's':
+			if len(urlMap) < 1 {
+				fmt.Println("Поиск невозможен. Нет ни одной записи")
+				fmt.Println("")
+				continue OuterLoop
+			}
+			if err := keyboard.Close(); err != nil {
+				log.Fatal(err)
+			}
+			// Поиск url в списке хранения
+			fmt.Println("Введите имя ссылки для поиска:")
+			fmt.Print("> ")
+
+			reader := bufio.NewReader(os.Stdin)
+			text, _ := reader.ReadString('\n')
+
+			text = strings.TrimRight(text, "\r\n")
+			text = strings.TrimRight(text, "\r")
+
+			if url := searchRec(urlMap, text); url != "" {
+				fmt.Println("\n--=== Результат поиска ===--")
+				fmt.Print(urlMap[url].GetRecord())
+				fmt.Println("--=== ===--")
+			} else {
+				fmt.Printf("\nЗапись %s не найдена\n\n", text)
+				continue OuterLoop
+			}
+
+		case 't':
+			if len(urlMap) < 1 {
+				fmt.Println("Поиск невозможен. Нет ни одной записи")
+				fmt.Println("")
+				continue OuterLoop
+			}
+			if err := keyboard.Close(); err != nil {
+				log.Fatal(err)
+			}
+			// Поиск url в списке хранения
+			fmt.Println("Введите тэг для поиска:")
+			fmt.Print("> ")
+
+			reader := bufio.NewReader(os.Stdin)
+			text, _ := reader.ReadString('\n')
+
+			text = strings.TrimRight(text, "\r\n")
+			text = strings.TrimRight(text, "\r")
+
+			if urls := searchTag(urlMap, text); len(urls) > 0 {
+				fmt.Println("\n--=== Результат поиска ===--")
+				for _, u := range urls {
+					fmt.Print(urlMap[u].GetRecord())
+					fmt.Println("--=== ===--")
+				}
+			} else {
+				fmt.Printf("\nЗапись по тэгу %s не найдена\n\n", text)
+				continue OuterLoop
+			}
 		default:
 			// Если нажата Esc выходим из приложения
 			if key == keyboard.KeyEsc {
