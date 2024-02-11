@@ -54,42 +54,43 @@ func (d Record) GetDesc() string {
 	return d.Desc
 }
 
-func (d Record) GetTime() time.Time {
-	return d.Date
+func (d Record) GetTime() string {
+	return d.Date.Format("01/02/2006 15:04")
 }
 
 func (d Record) GetRecord() string {
 	var s strings.Builder
 	s.WriteString("Имя: ")
-	s.WriteString(d.Desc)
+	s.WriteString(d.GetDesc())
 	s.WriteString(";\n")
 	s.WriteString("URL: ")
-	s.WriteString(d.Url)
+	s.WriteString(d.GetUrl())
 	s.WriteString(";\n")
 	s.WriteString("Теги: ")
 	s.WriteString(d.GetTags())
 	s.WriteString(";\n")
 	s.WriteString("Дата: ")
-	s.WriteString(d.Date.Format("01/02/2006 15:04"))
+	s.WriteString(d.GetTime())
 	s.WriteString(";\n")
 	return s.String()
 }
 
+// пока подразумеваем что не может быть двух ссылок с полностью одинаковыми названиями. Иначе результат нужно собрать в слайс
 func searchRec(m map[string]Record, s string) string {
 	for url, rec := range m {
-		if rec.Desc == s {
+		if strings.EqualFold(rec.Desc, s) {
 			return url
 		}
 	}
 	return ""
 }
 
+// опять-таки как самый простой вариант. Кажется, что в действительности лучше собирать отдельную мапу слайсов с ключём-тэгом
 func searchTag(m map[string]Record, s string) []string {
-
 	var r []string
 	for url, rec := range m {
 		for _, t := range rec.Tag {
-			if t == s {
+			if strings.EqualFold(t, s) {
 				r = append(r, url)
 			}
 		}
@@ -154,11 +155,13 @@ OuterLoop:
 			url := strings.Replace(args[0], "https://", "", 1)
 			url = strings.Replace(url, "http://", "", 1)
 
+			// проверка, записан ли уже этот url
 			if urlMap[url].Url != "" {
 				fmt.Println("Ошибка. Этот URL уже записан")
 				fmt.Println("")
 				continue OuterLoop
 			}
+
 			urlMap[url] = Record{time.Now(), args[0], desc, Tags{tags}}
 
 			fmt.Println("Запись добавлена")
@@ -173,11 +176,13 @@ OuterLoop:
 			// Дата: <дата>
 
 			// Напишите свой код здесь
+			// проверка на наличие записей
 			if len(urlMap) < 1 {
 				fmt.Println("Ошибка. Нет ни одной записи")
 				fmt.Println("")
 				continue OuterLoop
 			}
+			// вывод результата
 			fmt.Println("\n--=== Список URL ===--")
 			for _, r := range urlMap {
 				fmt.Print(r.GetRecord())
