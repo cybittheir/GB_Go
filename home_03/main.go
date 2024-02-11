@@ -26,7 +26,7 @@ import (
 )
 
 type Tags struct {
-	Tag string
+	Tag []string
 }
 
 type Record struct {
@@ -36,7 +36,7 @@ type Record struct {
 	Tags
 }
 
-func (t Tags) GetTags() string {
+func (t Tags) GetTags() []string {
 	return t.Tag
 }
 
@@ -100,7 +100,9 @@ OuterLoop:
 			}
 
 			// Напишите свой код здесь
-			r := Record{time.Now(), args[0], args[1], Tags{args[2]}}
+			desc := strings.Replace(args[1], "_", " ", -1)
+			tags := strings.Fields(strings.Replace(args[2], ",", " ", -1))
+			r := Record{time.Now(), args[0], desc, Tags{tags}}
 			records = append(records, r)
 			fmt.Println("Запись добавлена")
 
@@ -113,6 +115,19 @@ OuterLoop:
 			// Дата: <дата>
 
 			// Напишите свой код здесь
+			if len(records) < 1 {
+				fmt.Println("\nОшибка. Нет ни одной записи")
+				continue OuterLoop
+			}
+			fmt.Println("--=== Список URL ===--")
+			for _, r := range records {
+				fmt.Printf("Имя: %s;\n", r.Desc)
+				fmt.Printf("URL: %s;\n", r.Url)
+				fmt.Printf("Теги: %s;\n", r.Tag)
+				fmt.Printf("Дата: %s;\n", r.Date)
+				fmt.Println("--=== ===--")
+			}
+
 		case 'r':
 			if err := keyboard.Close(); err != nil {
 				log.Fatal(err)
