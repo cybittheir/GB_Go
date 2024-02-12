@@ -16,8 +16,11 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"maps"
 	"os"
 	"strings"
 	"time"
@@ -98,18 +101,68 @@ func searchTag(m map[string]Record, s string) []string {
 	return r
 }
 
+const fn = "urllist.json"
+
+func writeFile(m map[string]Record, f string) {
+	j, _ := json.Marshal(m)
+
+	err := os.WriteFile(f, j, 0644)
+	if err != nil {
+		fmt.Printf("Ошибка сохранения файла: %s\n", f)
+		fmt.Println(err)
+	} else {
+		fmt.Printf("Список сохранен в файл %s\n\n", fn)
+	}
+
+}
+
+func readFile(f string) map[string]Record {
+	var m map[string]Record
+	fmt.Printf("Чтение списка из файла: %s\n", f)
+	j, err := os.Open(f)
+	if err != nil {
+		fmt.Printf("Невозможно открыть файл: %s\n", f)
+		fmt.Println(err)
+	} else {
+		fmt.Println("...")
+		if byteValue, err := io.ReadAll(j); err != nil {
+			fmt.Println("Невозможно прочитать список")
+			fmt.Println(err)
+		} else {
+			fmt.Println("Список успешно прочитан")
+			json.Unmarshal(byteValue, &m)
+		}
+	}
+	defer j.Close()
+
+	return m
+}
+
 func main() {
+
+	fmt.Println("** Программа для добавления url в список **")
+	fmt.Println("")
 
 	urlMap := make(map[string]Record)
 
-	fmt.Println("Программа для добавления url в список")
+	if _, err := os.Stat(fn); err == nil {
+		oldList := readFile(fn)
+		if len(oldList) > 0 {
+			urlMap = oldList
+		}
+	}
+
+	fmt.Println("=====================================")
 	fmt.Println("a - добавить запись")
 	fmt.Println("l - показать список")
 	fmt.Println("r - удалить запись")
 	fmt.Println("s - найти запись по описанию")
 	fmt.Println("t - найти запись по тэгу")
+	fmt.Println("w - сохранить список в файл")
+	fmt.Println("g - прочитать список из файла")
+	fmt.Println("-------------------------------------")
 	fmt.Println("Для выхода из приложения нажмите Esc")
-	fmt.Println("")
+	fmt.Println("=====================================")
 
 	defer func() {
 		// Завершаем работу с клавиатурой при выходе из функции
@@ -124,7 +177,7 @@ OuterLoop:
 			log.Fatal(err)
 		}
 
-		fmt.Print("Выберите режим (a/r/l/s/t/ESC): ")
+		fmt.Print("Выберите режим (a/r/l/s/t/w/g/ESC): ")
 		char, key, err := keyboard.GetKey()
 		if err != nil {
 			log.Fatal(err)
@@ -274,6 +327,22 @@ OuterLoop:
 				fmt.Printf("\nЗапись по тэгу %s не найдена\n\n", text)
 				continue OuterLoop
 			}
+		case 'w':
+			if len(urlMap) < 1 {
+				fmt.Println("Ошибка. Нет ни одной записи")
+				fmt.Println("")
+				continue OuterLoop
+			}
+
+			writeFile(urlMap, fn)
+
+		case 'g':
+			if len(urlMap) < 1 {
+				urlMap = readFile(fn)
+			} else {
+				maps.Copy(urlMap, readFile(fn))
+			}
+
 		default:
 			// Если нажата Esc выходим из приложения
 			if key == keyboard.KeyEsc {
