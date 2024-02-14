@@ -28,8 +28,14 @@ import (
 	"github.com/eiannone/keyboard"
 )
 
-type Tags struct {
-	Tag []string
+type Tags []string
+
+func (t Tags) String() string {
+	var s string
+	for _, v := range t {
+		s += fmt.Sprintf("#%s ", v)
+	}
+	return strings.TrimSpace(s)
 }
 
 type Record struct {
@@ -37,16 +43,6 @@ type Record struct {
 	Url  string
 	Desc string
 	Tags
-}
-
-func (t Tags) GetTags() string {
-	var s strings.Builder
-	for _, t := range t.Tag {
-		s.WriteString("#")
-		s.WriteString(t)
-		s.WriteString(" ")
-	}
-	return strings.TrimSpace(s.String())
 }
 
 func (r Record) GetUrl() string {
@@ -61,7 +57,7 @@ func (d Record) GetTime() string {
 	return d.Date.Format("01/02/2006 15:04")
 }
 
-func (d Record) GetRecord() string {
+func (d Record) String() string {
 	var s strings.Builder
 	s.WriteString("Имя: ")
 	s.WriteString(d.GetDesc())
@@ -70,7 +66,7 @@ func (d Record) GetRecord() string {
 	s.WriteString(d.GetUrl())
 	s.WriteString(";\n")
 	s.WriteString("Теги: ")
-	s.WriteString(d.GetTags())
+	s.WriteString(d.String())
 	s.WriteString(";\n")
 	s.WriteString("Дата: ")
 	s.WriteString(d.GetTime())
@@ -92,7 +88,7 @@ func searchRec(m map[string]Record, s string) string {
 func searchTag(m map[string]Record, s string) []string {
 	var r []string
 	for url, rec := range m {
-		for _, t := range rec.Tag {
+		for _, t := range rec.Tags {
 			if strings.EqualFold(t, s) {
 				r = append(r, url)
 			}
@@ -215,7 +211,7 @@ OuterLoop:
 				continue OuterLoop
 			}
 
-			urlMap[url] = Record{time.Now(), args[0], desc, Tags{tags}}
+			urlMap[url] = Record{time.Now(), args[0], desc, tags}
 
 			fmt.Println("Запись добавлена")
 			fmt.Println("")
@@ -238,7 +234,7 @@ OuterLoop:
 			// вывод результата
 			fmt.Println("\n--=== Список URL ===--")
 			for _, r := range urlMap {
-				fmt.Print(r.GetRecord())
+				fmt.Print(r.String())
 				fmt.Println("--=== ===--")
 			}
 
@@ -291,7 +287,7 @@ OuterLoop:
 
 			if url := searchRec(urlMap, text); url != "" {
 				fmt.Println("\n--=== Результат поиска ===--")
-				fmt.Print(urlMap[url].GetRecord())
+				fmt.Print(urlMap[url].String())
 				fmt.Println("--=== ===--")
 			} else {
 				fmt.Printf("\nЗапись %s не найдена\n\n", text)
@@ -320,7 +316,7 @@ OuterLoop:
 			if urls := searchTag(urlMap, text); len(urls) > 0 {
 				fmt.Println("\n--=== Результат поиска ===--")
 				for _, u := range urls {
-					fmt.Print(urlMap[u].GetRecord())
+					fmt.Print(urlMap[u].String())
 					fmt.Println("--=== ===--")
 				}
 			} else {
