@@ -61,7 +61,8 @@ func (t *txOperator) Balance() int64 {
 
 func (t *txOperator) Withdraw(amount int64) error {
 	// TODO implement me
-	panic("implement me")
+	//	panic("implement me")
+	&t.Balance = amount
 }
 
 func (t *txOperator) Deposit(amount int64) error {
